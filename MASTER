@@ -1,0 +1,563 @@
+//IMPORTANTEEEEEEEEEEEEEEEEEE IMPORTANTEEEEEEEEEEEEEEEEEE IMPORTANTEEEEEEEEEEEEEEEEEE IMPORTANTEEEEEEEEEEEEEEEEEE 
+//PRIMA DI CERCARE DI CAPIRE IL CODICE LEGGERE LA RELAZIONE E ASSICURARSI DI AVERE CAPITO TUTTO 
+
+//IL WALL OF TEXT SEGUENTE E'  CIO CHE FA FUNZIONARE L'LCD 
+#include <Elegoo_GFX.h>    // Core graphics library
+#include <Elegoo_TFTLCD.h> // Hardware-specific library
+#include <Wire.h>
+
+// The control pins for the LCD can be assigned to any digital or
+// analog pins...but we'll use the analog pins as this allows us to
+// double up the pins with the touch screen (see the TFT paint example).
+#define LCD_CS A3 // Chip Select goes to Analog 3
+#define LCD_CD A2 // Command/Data goes to Analog 2
+#define LCD_WR A1 // LCD Write goes to Analog 1
+#define LCD_RD A0 // LCD Read goes to Analog 0
+
+#define LCD_RESET A4 // Can alternately just connect to Arduino's reset pin
+
+#define BLACK   0x000000
+#define  BLUE   0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
+
+Elegoo_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
+// If using the shield, all control and data lines are fixed, and
+// a simpler declaration can optionally be used:
+// Elegoo_TFTLCD tft;
+
+
+void setup(void) {
+  Serial.begin(9600);
+  Wire.begin();
+  Serial.println(F("TFT LCD test"));
+
+#ifdef USE_Elegoo_SHIELD_PINOUT
+  Serial.println(F("Using Elegoo 2.4\" TFT Arduino Shield Pinout"));
+#else
+  Serial.println(F("Using Elegoo 2.4\" TFT Breakout Board Pinout"));
+#endif
+
+  Serial.print("TFT size is "); Serial.print(tft.width()); Serial.print("x"); Serial.println(tft.height());
+
+  tft.reset();
+
+   uint16_t identifier = tft.readID();
+   if(identifier == 0x9325) {
+    Serial.println(F("Found ILI9325 LCD driver"));
+  } else if(identifier == 0x9328) {
+    Serial.println(F("Found ILI9328 LCD driver"));
+  } else if(identifier == 0x4535) {
+    Serial.println(F("Found LGDP4535 LCD driver"));
+  }else if(identifier == 0x7575) {
+    Serial.println(F("Found HX8347G LCD driver"));
+  } else if(identifier == 0x9341) {
+    Serial.println(F("Found ILI9341 LCD driver"));
+  } else if(identifier == 0x8357) {
+    Serial.println(F("Found HX8357D LCD driver"));
+  } else if(identifier==0x0101)
+  {     
+      identifier=0x9341;
+       Serial.println(F("Found 0x9341 LCD driver"));
+  }
+  else if(identifier==0x1111)
+  {     
+      identifier=0x9328;
+       Serial.println(F("Found 0x9328 LCD driver"));
+  }
+  else {
+    Serial.print(F("Unknown LCD driver chip: "));
+    Serial.println(identifier, HEX);
+    Serial.println(F("If using the Elegoo 2.8\" TFT Arduino shield, the line:"));
+    Serial.println(F("  #define USE_Elegoo_SHIELD_PINOUT"));
+    Serial.println(F("should appear in the library header (Elegoo_TFT.h)."));
+    Serial.println(F("If using the breakout board, it should NOT be #defined!"));
+    Serial.println(F("Also if using the breakout, double-check that all wiring"));
+    Serial.println(F("matches the tutorial."));
+    identifier=0x9328;
+  
+  }
+  tft.begin(identifier);
+
+ 
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  tft.setRotation(3);
+  
+  tft.fillScreen(BLACK); //BACKGROUN NERO
+  unsigned long start = micros();
+
+  //DICHIARAZIONE DELLE VARIABILI PER LA CONVERSIONE DEI VALORI PROVENIENTI DA I2C
+  String data= "";
+  String data2= "";
+  String data3= "";
+  String data4= "";
+  String data5= "";
+  String data6= "";
+  String data7= "";
+  String data8= "";
+  float monossido;
+  float mq9;
+  float mq5;
+  float mq3;
+  float mq4;
+  float mq2;
+  float mq6;
+  float mq135;
+
+  //INIZIO LA TRASMISSIONE E TRIGGERO LA FUNZIONE "RISPONDI DELLO SLAVE INDICATO TRA PARENSTESI
+  //QUESTO PROCEDIMENTO VERRA RIPETUTO PER OGNI SENSORE 
+  Wire.beginTransmission(1);
+  Wire.write(1); //INVIO IL VALORE TRA PARENTESI ALLO SLAVE CHE LO ASSEGNERA AD UNA VARIABILE
+  Wire.endTransmission(); //
+
+  Wire.requestFrom(1,4);//RICHIEDO ALLO SLAVE UN DATO DI MASSIMO 4BYTE
+  while(Wire.available())//il master rimane in ascolto e riceve i byte
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    
+    char c= Wire.read();//LEGGO IL VALORE INVIATO DALLO SLAVE E LO ASSEGNO AL CHAR C
+    data= data + c;
+    monossido = data.toFloat();//TRASMORMO LA VARIABILE DATA IN FLOAT E L'ASSEGNO 
+    Serial.print("Valore monossido: ");
+    Serial.println(monossido);
+  }
+ 
+
+
+  
+   Wire.beginTransmission(1);
+   Wire.write(2);
+   Wire.endTransmission();
+   
+   Wire.requestFrom(1,4);
+   while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    
+    char d= Wire.read();
+    data2=data2+d;
+    mq9=data2.toFloat();
+    Serial.print("Valore mq9: ");
+    Serial.println(mq9);  
+  }
+
+
+
+  Wire.beginTransmission(1);
+  Wire.write(3);
+  Wire.endTransmission();
+  Wire.requestFrom(1,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    
+    char e= Wire.read();
+    data3=data3+e;
+    mq5=data3.toFloat();
+    Serial.print("Valore mq5: ");
+    Serial.println(mq5);  
+  }
+
+
+
+
+  Wire.beginTransmission(1);
+  Wire.write(4);
+  Wire.endTransmission();
+  Wire.requestFrom(1,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    
+    char f= Wire.read();
+    data4=data4+f;
+    mq3=data4.toFloat();
+    Serial.print("Alchol: ");
+    Serial.println(mq3); 
+  }
+
+
+
+  Wire.beginTransmission(2);
+  Wire.write(5);
+  Wire.endTransmission();
+  Wire.requestFrom(2,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+
+    char g= Wire.read();
+    data5=data5+g;
+    mq4=data5.toFloat();
+    Serial.print("Metano: ");
+    Serial.println(mq4); 
+  }
+
+
+
+  Wire.beginTransmission(2);
+  Wire.write(6);
+  Wire.endTransmission();
+  Wire.requestFrom(2,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+
+    char h= Wire.read();
+    data6=data6+h;
+    mq2=data6.toFloat();
+    Serial.print("H2/CO/CH4: ");
+    Serial.println(mq2); 
+  }
+
+
+
+
+  Wire.beginTransmission(2);
+  Wire.write(7);
+  Wire.endTransmission();
+  Wire.requestFrom(2,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+
+    char i= Wire.read();
+    data7=data7+i;
+    mq6=data7.toFloat();
+    Serial.print("GPL: ");
+    Serial.println(mq6); 
+  }
+
+
+
+  Wire.beginTransmission(2);
+  Wire.write(8);
+  Wire.endTransmission();
+  Wire.requestFrom(2,4);
+  while(Wire.available())
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+
+    char j= Wire.read();
+    data8=data8+j;
+    mq135=data8.toFloat();
+    Serial.print("co2: ");
+    Serial.println(mq135); 
+  }
+  
+
+
+
+  
+  
+  //ZONA PRINTING   ZONA PRINTING   ZONA PRINTING   ZONA PRINTING
+
+  //MONOSSIDO MONOSSIDO MONOSSIDO MONOSSIDO
+  //IN BASE ALLA CONCENTRAZIONE DI GAS IL COLORE DELLA SCRITTA COMBIA, IL PROCEDIMENTO E' OVVIAMENTO RIPETUTO PER IL VALORE
+  //REGISTRATO DA OGNI SENSORE
+  if(monossido<12)
+  {
+    tft.setCursor(0, 0); //IMPOSTO IL CURSORE ALLE COORDINATE DEL PIXEL 0,0
+    tft.setTextColor(WHITE);//IMPOSTO IL COLORE DEL TESTO BIANCO
+    tft.setTextSize(2);//SETTO LA DIMENSIONE DEL FONT
+    tft.print("Monossido: ");//PRINTO A SCHERMO
+    tft.setTextColor(GREEN);
+    tft.print(monossido);
+    tft.println(" ppm");
+    tft.setTextColor(WHITE);
+    
+  }
+  
+  if(monossido>12 && monossido<50)
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("Monossido: ");
+    tft.setTextColor(YELLOW);
+    tft.print(monossido);
+    tft.println(" ppm");
+    tft.setTextColor(WHITE);
+  }
+
+  if(monossido>50)
+  {
+    tft.setCursor(0, 0);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("Monossido: ");
+    tft.setTextColor(RED);
+    tft.print(monossido);
+    tft.println(" ppm");
+    tft.setTextColor(WHITE);
+  }
+
+  
+
+  tft.println("");
+
+
+//MQ9 MQ9 MQ9 MQ9 MQ9 MQ9 MQ9 MQ9 MQ9 MQ9 
+  if(mq9>2.7)
+  {
+    
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("GPL: ");
+    tft.setTextColor(GREEN);
+    tft.print(mq9);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+  if(mq9<2.7 && mq9>1.4)
+  {
+    
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("GPL: ");
+    tft.setTextColor(YELLOW);
+    tft.print(mq9);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+
+  if(mq9<1.4)
+  {
+    
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("GPL: ");
+    tft.setTextColor(RED);
+    tft.print(mq9);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+
+  
+  
+ 
+
+   tft.println("");
+//MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 MQ5 
+
+  if(mq5>1)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("IDROGENO: ");
+    tft.setTextColor(GREEN);
+    tft.print(mq5);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+  if(mq5<1 && mq5>0.8)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("IDROGENO: ");
+    tft.setTextColor(YELLOW);
+    tft.print(mq5);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+
+  if(mq5<0.8)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("IDROGENO: ");
+    tft.setTextColor(RED);
+    tft.print(mq5);
+    tft.println(" RS/R0");
+    tft.setTextColor(WHITE);
+  }
+
+  
+
+
+
+   tft.println("");
+//MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 MQ3 
+
+    if(mq3>2.1)
+    {
+      tft.setTextColor(WHITE);
+      tft.setTextSize(2);
+      tft.print("ALCOOL: ");
+      tft.setTextColor(GREEN);
+      tft.print("<0.1 mg/L");
+      tft.println("");
+      tft.setTextColor(WHITE);
+    }
+
+    if(mq3<2.1 && mq3>1.7)
+    {
+      tft.setTextColor(WHITE);
+      tft.setTextSize(2);
+      tft.print("ALCOOL: ");
+      tft.setTextColor(GREEN);
+      tft.print("0.2 mg/L");
+      tft.println("");
+      tft.setTextColor(WHITE);
+    }
+
+    if(mq3<1.7 && mq3>1.3)
+    {
+      tft.setTextColor(WHITE);
+      tft.setTextSize(2);
+      tft.print("ALCOOL: ");
+      tft.setTextColor(GREEN);
+      tft.print("0.3 mg/L");
+      tft.println("");
+      tft.setTextColor(WHITE);
+    }
+
+    if(mq3<1.3 && mq3>1.1)
+    {
+      tft.setTextColor(WHITE);
+      tft.setTextSize(2);
+      tft.print("ALCOOL: ");
+      tft.setTextColor(YELLOW);
+      tft.print("0.4 mg/L");
+      tft.println("");
+      tft.setTextColor(WHITE);
+    }
+    if(mq3<=0.8)
+    {
+      tft.setTextColor(WHITE);
+      tft.setTextSize(2);
+      tft.print("ALCOOL: ");
+      tft.setTextColor(RED);
+      tft.print("0.4 mg/L");
+      tft.println("");
+      tft.setTextColor(WHITE);
+    }
+  
+
+   tft.println("");
+//mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 mq4 
+  if(mq4>1.7)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("METANO: ");
+    tft.setTextColor(GREEN);
+    tft.print("<100PPM");
+    tft.println("");
+    tft.setTextColor(WHITE);
+  
+
+    
+  }
+  if(mq4<1.7 && mq4>1)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("METANO: ");
+    tft.setTextColor(YELLOW);
+    tft.print("100-900 PPM");
+    tft.println("");
+    tft.setTextColor(WHITE);
+  
+
+    
+  }
+
+  if(mq4<1)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("METANO: ");
+    tft.setTextColor(RED);
+    tft.print(">1000 PPM");
+    tft.println("");
+    tft.setTextColor(WHITE); 
+  }
+
+ 
+
+   tft.println("");
+
+  if(mq2>0.4)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("PROPANO: ");
+    tft.setTextColor(GREEN);
+    tft.print("<5000 PPM");
+    tft.println("");
+    tft.setTextColor(WHITE); 
+  }
+  if(mq2<0.4 && mq2>2.8)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("PROPANO: ");
+    tft.setTextColor(RED);
+    tft.print("5K-10K PPM");
+    tft.println("");
+    tft.setTextColor(WHITE); 
+  }
+
+  tft.println("");
+
+ if(mq135>0 && mq135<1000)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("CO2: ");
+    tft.setTextColor(GREEN);
+    tft.print(mq135);
+    tft.println(" PPM");
+    tft.setTextColor(WHITE); 
+  }
+  if(mq135>1000 && mq135<2000)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("CO2: ");
+    tft.setTextColor(YELLOW);
+    tft.print(mq135);
+    tft.println(" PPM");
+    tft.setTextColor(WHITE); 
+  }
+
+
+  if( mq135>2000)
+  {
+    tft.setTextColor(WHITE);
+    tft.setTextSize(2);
+    tft.print("CO2: ");
+    tft.setTextColor(RED);
+    tft.print(mq135);
+    tft.println(" PPM");
+    tft.setTextColor(WHITE); 
+  }
+
+
+ 
+  delay(1000);
+}
