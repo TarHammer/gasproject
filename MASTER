@@ -125,8 +125,8 @@ void loop() {
     tft.setTextSize(2);
     
     char c= Wire.read();//LEGGO IL VALORE INVIATO DALLO SLAVE E LO ASSEGNO AL CHAR C
-    data= data + c;
-    monossido = data.toFloat();//TRASMORMO LA VARIABILE DATA IN FLOAT E L'ASSEGNO 
+    data= data + c;//LA STRINGA VUOTA "DATA" PRENDE IL VALORE DEL CHAR C
+    monossido = data.toFloat();//TRASMORMO LA VARIABILE DATA DA STRING IN FLOAT E L'ASSEGNO AL FLOAT MONOSSIDO
     Serial.print("Valore monossido: ");
     Serial.println(monossido);
   }
